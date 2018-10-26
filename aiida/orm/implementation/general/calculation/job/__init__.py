@@ -24,7 +24,7 @@ from aiida.common.exceptions import ModificationNotAllowed, MissingPluginError
 from aiida.common.links import LinkType
 from aiida.plugins.loader import get_plugin_type_from_type_string
 from aiida.common.utils import str_timedelta, classproperty
-from aiida.orm.computer import Computer
+from aiida.orm.computers import Computer
 from aiida.orm.implementation.general.calculation import AbstractCalculation
 from aiida.orm.mixins import Sealable
 from aiida.utils import timezone
@@ -1341,7 +1341,7 @@ class AbstractJobCalculation(AbstractCalculation):
 
         from aiida.orm.querybuilder import QueryBuilder
         from tabulate import tabulate
-        from aiida.orm.backends import construct_backend
+        from aiida import orm
 
         projection_label_dict = {
             'pk': 'PK',
@@ -1364,7 +1364,6 @@ class AbstractJobCalculation(AbstractCalculation):
 
         now = timezone.now()
 
-        backend = construct_backend()
 
         # Let's check the states:
         if states:
@@ -1404,7 +1403,7 @@ class AbstractJobCalculation(AbstractCalculation):
 
             # Filter on the users, if not all users
             if not all_users:
-                user_id = backend.users.get_default().id
+                user_id = orm.User.objects.get_default().id
                 calculation_filters['user_id'] = {'==': user_id}
 
             if past_days is not None:
@@ -1419,7 +1418,7 @@ class AbstractJobCalculation(AbstractCalculation):
 
         calc_list_header = [projection_label_dict[p] for p in projections]
 
-        qb = QueryBuilder()
+        qb = orm.QueryBuilder()
         qb.append(
             cls,
             filters=calculation_filters,
@@ -1600,7 +1599,7 @@ class AbstractJobCalculation(AbstractCalculation):
         """
         # I assume that calc_states are strings. If this changes in the future,
         # update the filter below from dbattributes__tval to the correct field.
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.orm.querybuilder import QueryBuilder
 
         if state not in calc_states:
@@ -1814,7 +1813,7 @@ class AbstractJobCalculation(AbstractCalculation):
                                              ValidationError)
         from aiida.scheduler.datastructures import JobTemplate
         from aiida.common.utils import validate_list_of_string_tuples
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.orm import DataFactory
         from aiida.common.datastructures import CodeInfo, code_run_modes
         from aiida.orm.code import Code
@@ -2093,7 +2092,7 @@ class AbstractJobCalculation(AbstractCalculation):
         from aiida.utils import timezone
 
         from aiida.transport.plugins.local import LocalTransport
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.common.folders import Folder
         from aiida.common.exceptions import NotExistent
 

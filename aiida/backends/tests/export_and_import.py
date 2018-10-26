@@ -20,6 +20,8 @@ from six.moves import range, zip
 
 from aiida.backends.testbase import AiidaTestCase
 from aiida.orm.importexport import import_data
+from aiida import orm
+
 
 class TestSpecificImport(AiidaTestCase):
 
@@ -60,7 +62,6 @@ class TestSpecificImport(AiidaTestCase):
         }).store()
 
         with tempfile.NamedTemporaryFile() as handle:
-
             nodes = [parameters]
             export(nodes, outfile=handle.name, overwrite=True, silent=True)
 
@@ -175,6 +176,7 @@ class TestSpecificImport(AiidaTestCase):
             qb.append(RemoteData, project=['uuid'], output_of='parent', tag='remote')
             qb.append(Calculation, output_of='remote')
             self.assertGreater(len(qb.all()), 0)
+
 
 class TestSimple(AiidaTestCase):
 
@@ -465,8 +467,7 @@ class TestSimple(AiidaTestCase):
         try:
             # Create another user
             new_email = "newuser@new.n"
-            user = self.backend.users.create(email=new_email)
-            user.store()
+            user = orm.User(email=new_email, backend=self.backend).store()
 
             # Create a structure data node that has a calculation as output
             sd1 = StructureData()
@@ -515,7 +516,8 @@ class TestSimple(AiidaTestCase):
             # Check that the imported nodes are correctly imported and that
             # the user assigned to the nodes is the right one
             for uuid in uuids_u1:
-                self.assertEquals(load_node(uuid).get_user().email, new_email)
+                node = load_node(uuid=uuid)
+                self.assertEquals(node.get_user().email, new_email)
             for uuid in uuids_u2:
                 self.assertEquals(load_node(uuid).get_user().email,
                                   get_configured_user_email())
@@ -548,8 +550,7 @@ class TestSimple(AiidaTestCase):
         try:
             # Create another user
             new_email = "newuser@new.n"
-            user = self.backend.users.create(email=new_email)
-            user.store()
+            user = orm.User(email=new_email, backend=self.backend).store()
 
             # Create a structure data node that has a calculation as output
             sd1 = StructureData()
@@ -652,7 +653,7 @@ class TestSimple(AiidaTestCase):
         try:
             # Create another user
             new_email = "newuser@new.n"
-            user = self.backend.users.create(email=new_email)
+            user = orm.User(email=new_email, backend=self.backend)
             user.store()
 
             # Create a structure data node that has a calculation as output
@@ -708,10 +709,8 @@ class TestSimple(AiidaTestCase):
         import tempfile
 
         from aiida.orm import load_node
-        from aiida.orm.calculation.job import JobCalculation
         from aiida.orm.data.structure import StructureData
         from aiida.orm.importexport import export
-        from aiida.common.datastructures import calc_states
         from aiida.orm.querybuilder import QueryBuilder
 
         # Creating a folder for the import/export files
@@ -719,7 +718,7 @@ class TestSimple(AiidaTestCase):
         try:
             # Create another user
             new_email = "newuser@new.n"
-            user = self.backend.users.create(email=new_email)
+            user = orm.User(email=new_email, backend=self.backend)
             user.store()
 
             # Create a structure data node
@@ -961,6 +960,7 @@ class TestSimple(AiidaTestCase):
             # Deleting the created temporary folder
             shutil.rmtree(temp_folder, ignore_errors=True)
 
+
 class TestComplex(AiidaTestCase):
 
     def test_complex_graph_import_export(self):
@@ -1046,6 +1046,7 @@ class TestComplex(AiidaTestCase):
             # Deleting the created temporary folder
             shutil.rmtree(temp_folder, ignore_errors=True)
 
+
 class TestComputer(AiidaTestCase):
 
     def setUp(self):
@@ -1071,7 +1072,7 @@ class TestComputer(AiidaTestCase):
 
         from aiida.orm.importexport import export
         from aiida.orm.querybuilder import QueryBuilder
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.orm.calculation.job import JobCalculation
 
         # Creating a folder for the import/export files
@@ -1084,7 +1085,7 @@ class TestComputer(AiidaTestCase):
             calc1 = JobCalculation()
             calc1.set_computer(self.computer)
             calc1.set_option('resources', {"num_machines": 1,
-                                 "num_mpiprocs_per_machine": 1})
+                                           "num_mpiprocs_per_machine": 1})
             calc1.label = calc1_label
             calc1.store()
             calc1._set_state(u'RETRIEVING')
@@ -1093,7 +1094,7 @@ class TestComputer(AiidaTestCase):
             calc2 = JobCalculation()
             calc2.set_computer(self.computer)
             calc2.set_option('resources', {"num_machines": 2,
-                                 "num_mpiprocs_per_machine": 2})
+                                           "num_mpiprocs_per_machine": 2})
             calc2.label = calc2_label
             calc2.store()
             calc2._set_state(u'RETRIEVING')
@@ -1195,7 +1196,7 @@ class TestComputer(AiidaTestCase):
 
         from aiida.orm.importexport import export
         from aiida.orm.querybuilder import QueryBuilder
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.orm.calculation.job import JobCalculation
 
         # Creating a folder for the import/export files
@@ -1208,7 +1209,7 @@ class TestComputer(AiidaTestCase):
             calc1 = JobCalculation()
             calc1.set_computer(self.computer)
             calc1.set_option('resources', {"num_machines": 1,
-                                 "num_mpiprocs_per_machine": 1})
+                                           "num_mpiprocs_per_machine": 1})
             calc1.label = calc1_label
             calc1.store()
             calc1._set_state(u'RETRIEVING')
@@ -1228,7 +1229,7 @@ class TestComputer(AiidaTestCase):
             calc2 = JobCalculation()
             calc2.set_computer(self.computer)
             calc2.set_option('resources', {"num_machines": 2,
-                                 "num_mpiprocs_per_machine": 2})
+                                           "num_mpiprocs_per_machine": 2})
             calc2.label = calc2_label
             calc2.store()
             calc2._set_state(u'RETRIEVING')
@@ -1300,7 +1301,7 @@ class TestComputer(AiidaTestCase):
 
         from aiida.orm.importexport import export
         from aiida.orm.querybuilder import QueryBuilder
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.orm.calculation.job import JobCalculation
         from aiida.orm.importexport import COMP_DUPL_SUFFIX
 
@@ -1318,7 +1319,7 @@ class TestComputer(AiidaTestCase):
             calc1 = JobCalculation()
             calc1.set_computer(self.computer)
             calc1.set_option('resources', {"num_machines": 1,
-                                 "num_mpiprocs_per_machine": 1})
+                                           "num_mpiprocs_per_machine": 1})
             calc1.label = calc1_label
             calc1.store()
             calc1._set_state(u'RETRIEVING')
@@ -1339,7 +1340,7 @@ class TestComputer(AiidaTestCase):
             calc2 = JobCalculation()
             calc2.set_computer(self.computer)
             calc2.set_option('resources', {"num_machines": 2,
-                                 "num_mpiprocs_per_machine": 2})
+                                           "num_mpiprocs_per_machine": 2})
             calc2.label = calc2_label
             calc2.store()
             calc2._set_state(u'RETRIEVING')
@@ -1360,7 +1361,7 @@ class TestComputer(AiidaTestCase):
             calc3 = JobCalculation()
             calc3.set_computer(self.computer)
             calc3.set_option('resources', {"num_machines": 2,
-                                 "num_mpiprocs_per_machine": 2})
+                                           "num_mpiprocs_per_machine": 2})
             calc3.label = calc3_label
             calc3.store()
             calc3._set_state(u'RETRIEVING')
@@ -1421,7 +1422,7 @@ class TestComputer(AiidaTestCase):
 
         from aiida.orm.importexport import export
         from aiida.orm.querybuilder import QueryBuilder
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
         from aiida.orm.calculation.job import JobCalculation
 
         # Creating a folder for the import/export files
@@ -1447,7 +1448,7 @@ class TestComputer(AiidaTestCase):
             calc1 = JobCalculation()
             calc1.set_computer(self.computer)
             calc1.set_option('resources', {"num_machines": 1,
-                                 "num_mpiprocs_per_machine": 1})
+                                           "num_mpiprocs_per_machine": 1})
             calc1.label = calc1_label
             calc1.store()
             calc1._set_state(u'RETRIEVING')
@@ -1485,10 +1486,9 @@ class TestComputer(AiidaTestCase):
         """
         from aiida.backends.tests.utils.fixtures import import_archive_fixture
         from aiida.orm.querybuilder import QueryBuilder
-        from aiida.orm.computer import Computer
+        from aiida.orm.computers import Computer
 
         for archive in ['export/compare/django.aiida', 'export/compare/sqlalchemy.aiida']:
-
             # Clean the database
             self.clean_db()
 
@@ -1574,7 +1574,7 @@ class TestLinks(AiidaTestCase):
         finally:
             shutil.rmtree(tmp_folder, ignore_errors=True)
 
-    def construct_complex_graph(self, export_combination = 0):
+    def construct_complex_graph(self, export_combination=0):
         """
         This method creates a "complex" graph with all available link types
         (INPUT, CREATE, RETURN and CALL) and returns the nodes of the graph. It
@@ -1758,7 +1758,7 @@ class TestLinks(AiidaTestCase):
         from aiida.orm.querybuilder import QueryBuilder
         from aiida.orm import Node
 
-        for export_conf in range(0,8):
+        for export_conf in range(0, 8):
 
             graph_nodes, (export_node, export_target) = (
                 self.construct_complex_graph(export_conf))
@@ -1787,11 +1787,11 @@ class TestLinks(AiidaTestCase):
                     imported_node_uuids,
                     "Problem in comparison of export node: " +
                     str(export_node_str) + "\n" +
-                    "Expected set: " + str(export_target_uuids)  + "\n" +
-                    "Imported set: " + str(imported_node_uuids)  + "\n" +
+                    "Expected set: " + str(export_target_uuids) + "\n" +
+                    "Imported set: " + str(imported_node_uuids) + "\n" +
                     "Difference: " + str([load_node(_) for _ in
-                        export_target_uuids.symmetric_difference(
-                            imported_node_uuids)])
+                                          export_target_uuids.symmetric_difference(
+                                              imported_node_uuids)])
                 )
 
             finally:
@@ -1853,11 +1853,11 @@ class TestLinks(AiidaTestCase):
             qb = QueryBuilder()
             qb.append(Node, project='uuid')
             qb.append(Node, project='uuid',
-                edge_project=['label', 'type'],
-                edge_filters={'type': {'in': (LinkType.INPUT.value,
-                                              LinkType.CREATE.value,
-                                              LinkType.RETURN.value,
-                                              LinkType.CALL.value)}})
+                      edge_project=['label', 'type'],
+                      edge_filters={'type': {'in': (LinkType.INPUT.value,
+                                                    LinkType.CREATE.value,
+                                                    LinkType.RETURN.value,
+                                                    LinkType.CALL.value)}})
             export_links = qb.all()
 
             export_file = os.path.join(tmp_folder, 'export.tar.gz')
@@ -1967,7 +1967,7 @@ class TestLinks(AiidaTestCase):
             o1.add_link_from(w1, 'return', link_type=LinkType.RETURN)
             o1.add_link_from(w2, 'return', link_type=LinkType.RETURN)
 
-            uuids_wanted = set(_.uuid for _ in (w1,o1,i1,w2))
+            uuids_wanted = set(_.uuid for _ in (w1, o1, i1, w2))
             links_wanted = [l for l in self.get_all_node_links() if l[3] in (
                 'createlink', 'inputlink', 'returnlink', 'calllink')]
 
@@ -2055,7 +2055,7 @@ class TestLinks(AiidaTestCase):
             jc = JobCalculation()
             jc.set_computer(self.computer)
             jc.set_option('resources',
-                {"num_machines": 1, "num_mpiprocs_per_machine": 1})
+                          {"num_machines": 1, "num_mpiprocs_per_machine": 1})
             jc.store()
 
             jc.add_link_from(code, 'code', link_type=LinkType.INPUT)
@@ -2074,8 +2074,8 @@ class TestLinks(AiidaTestCase):
             qb = QueryBuilder()
             qb.append(Code, project='uuid')
             qb.append(JobCalculation, project='uuid',
-                edge_project=['label', 'type'],
-                edge_filters={'type': {'==': LinkType.INPUT.value}})
+                      edge_project=['label', 'type'],
+                      edge_filters={'type': {'==': LinkType.INPUT.value}})
             self.assertEquals(qb.count(), 1,
                               "Expected to find one and only one link from "
                               "code to the calculation node. {} found."

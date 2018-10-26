@@ -130,7 +130,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
         result = self.runner.invoke(computer_setup, input=user_input)
         self.assertIsNone(result.exception, msg="There was an unexpected exception. Output: {}".format(result.output))
 
-        new_computer = self.backend.computers.get(name=label)
+        new_computer = orm.Computer.objects(self.backend).get(name=label)
         self.assertIsInstance(new_computer, orm.Computer)
 
         self.assertEqual(new_computer.description, options_dict['description'])
@@ -171,7 +171,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
         result = self.runner.invoke(computer_setup, options, input=user_input)
         self.assertIsNone(result.exception, msg="There was an unexpected exception. Output: {}".format(result.output))
 
-        new_computer = self.backend.computers.get(name=label)
+        new_computer = orm.Computer.objects(self.backend).get(name=label)
         self.assertIsInstance(new_computer, orm.Computer)
 
         self.assertEqual(new_computer.description, options_dict_full['description'])
@@ -198,7 +198,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
         result = self.runner.invoke(computer_setup, options)
 
         self.assertIsNone(result.exception, result.output[-1000:])
-        new_computer = self.backend.computers.get(name=options_dict['label'])
+        new_computer = orm.Computer.objects(self.backend).get(name=options_dict['label'])
         self.assertIsInstance(new_computer, orm.Computer)
 
         self.assertEqual(new_computer.description, options_dict['description'])
@@ -234,7 +234,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
         result = self.runner.invoke(computer_setup, options)
 
         self.assertIsNone(result.exception, result.output[-1000:])
-        new_computer = self.backend.computers.get(name=options_dict['label'])
+        new_computer = orm.Computer.objects(self.backend).get(name=options_dict['label'])
         self.assertIsInstance(new_computer, orm.Computer)
         self.assertFalse(new_computer.is_enabled())
 
@@ -253,7 +253,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
         result = self.runner.invoke(computer_setup, options)
 
         self.assertIsNone(result.exception, result.output[-1000:])
-        new_computer = self.backend.computers.get(name=options_dict['label'])
+        new_computer = orm.Computer.objects(self.backend).get(name=options_dict['label'])
         self.assertIsInstance(new_computer, orm.Computer)
         self.assertTrue(new_computer.is_enabled())
 
@@ -268,7 +268,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
 
         self.assertIsNone(result.exception, result.output[-1000:])
 
-        new_computer = self.backend.computers.get(name=options_dict['label'])
+        new_computer = orm.Computer.objects(self.backend).get(name=options_dict['label'])
         self.assertIsInstance(new_computer, orm.Computer)
         self.assertIsNone(new_computer.get_default_mpiprocs_per_machine())
 
@@ -283,7 +283,7 @@ class TestVerdiComputerSetup(AiidaTestCase):
 
         self.assertIsNone(result.exception, result.output[-1000:])
 
-        new_computer = self.backend.computers.get(name=options_dict['label'])
+        new_computer = orm.Computer.objects(self.backend).get(name=options_dict['label'])
         self.assertIsInstance(new_computer, orm.Computer)
         self.assertIsNone(new_computer.get_default_mpiprocs_per_machine())
 
@@ -354,7 +354,7 @@ class TestVerdiComputerConfigure(AiidaTestCase):
         from aiida.orm.backends import construct_backend
         from aiida.control.computer import ComputerBuilder
         self.backend = construct_backend()
-        self.user = self.backend.users.get_default()
+        self.user = orm.User.objects(self.backend).get_default()
         self.runner = CliRunner()
         self.comp_builder = ComputerBuilder(label='test_comp_setup')
         self.comp_builder.hostname = 'localhost'
@@ -459,7 +459,9 @@ class TestVerdiComputerConfigure(AiidaTestCase):
                                     ['ssh', comp.label, '--non-interactive', '--username={}'.format(username)],
                                     catch_exceptions=False)
         self.assertTrue(comp.is_user_configured(self.user), msg=result.output)
-        self.assertEqual(self.backend.authinfos.get(comp, self.user).get_auth_params()['username'], username)
+        self.assertEqual(orm.AuthInfo.objects(self.backend).get(
+            dbcomputer_id=comp.id, aiidauser_id=self.user.id).get_auth_params()['username'],
+                         username)
 
     def test_show(self):
         """Test verdi computer configure show <comp>."""
@@ -500,12 +502,13 @@ class TestVerdiComputerCommands(AiidaTestCase):
         interfere with other tests"""
         super(TestVerdiComputerCommands, cls).setUpClass(*args, **kwargs)
         cls.computer_name = "comp_cli_test_computer"
-        cls.comp = cls.backend.computers.create(
+        cls.comp = orm.Computer(
             name=cls.computer_name,
             hostname='localhost',
             transport_type='local',
             scheduler_type='direct',
-            workdir='/tmp/aiida')
+            workdir='/tmp/aiida',
+            backend=cls.backend)
         cls.comp.set_default_mpiprocs_per_machine(1)
         cls.comp.store()
 
@@ -513,7 +516,7 @@ class TestVerdiComputerCommands(AiidaTestCase):
         """
         Prepare the computer and user
         """
-        self.user = self.backend.users.get_default()
+        self.user = orm.User.objects(self.backend).get_default()
 
         # I need to configure the computer here; being 'local',
         # there should not be any options asked here
@@ -634,13 +637,15 @@ class TestVerdiComputerCommands(AiidaTestCase):
         """
         Test if 'verdi computer show' command works
         """
+        import traceback
+
         result = self.runner.invoke(computer_list, ['-p'])
 
         # See if we can display info about the test computer.
         result = self.runner.invoke(computer_show, ['comp_cli_test_computer'])
 
         # No exceptions should arise
-        self.assertIsNone(result.exception)
+        self.assertIsNone(result.exception, "".join(traceback.format_exception(*result.exc_info)))
         # Something should be printed to stdout
         self.assertIsNotNone(result.output)
 
@@ -682,9 +687,9 @@ class TestVerdiComputerCommands(AiidaTestCase):
         # Check that the name really was changed
         # The old name should not be available
         with self.assertRaises(NotExistent):
-            self.backend.computers.get(name='comp_cli_test_computer')
+            orm.Computer.objects(self.backend).get(name='comp_cli_test_computer')
         # The new name should be avilable
-        self.backend.computers.get(name='renamed_test_computer')
+        orm.Computer.objects(self.backend).get(name='renamed_test_computer')
 
         # Now change the name back
         options = ['renamed_test_computer', 'comp_cli_test_computer']
@@ -695,9 +700,9 @@ class TestVerdiComputerCommands(AiidaTestCase):
         # Check that the name really was changed
         # The old name should not be available
         with self.assertRaises(NotExistent):
-            self.assertFalse(self.backend.computers.get(name='renamed_test_computer'))
+            orm.Computer.objects(self.backend).get(name='renamed_test_computer')
         # The new name should be avilable
-        self.backend.computers.get(name='comp_cli_test_computer')
+        orm.Computer.objects(self.backend).get(name='comp_cli_test_computer')
 
     def test_computer_delete(self):
         """
@@ -706,9 +711,9 @@ class TestVerdiComputerCommands(AiidaTestCase):
         from aiida.common.exceptions import NotExistent
 
         # Setup a computer to delete during the test
-        comp = self.backend.computers.create(name='computer_for_test_delete', hostname='localhost',
-                                             transport_type='local', scheduler_type='direct', workdir='/tmp/aiida')
-        comp.store()
+        comp = orm.Computer(name='computer_for_test_delete', hostname='localhost',
+                            transport_type='local', scheduler_type='direct', workdir='/tmp/aiida',
+                            backend=self.backend).store()
 
         # See if the command complains about not getting an invalid computer
         options = ['non_existent_computer_name']
@@ -723,7 +728,7 @@ class TestVerdiComputerCommands(AiidaTestCase):
         self.assertIsNone(result.exception)
         # Check that the computer really was deleted
         with self.assertRaises(NotExistent):
-            self.backend.computers.get(name='computer_for_test_delete')
+            orm.Computer.objects(self.backend).get(name='computer_for_test_delete')
 
     def test_computer_duplicate_interactive(self):
         os.environ['VISUAL'] = 'sleep 1; vim -cwq'
@@ -733,7 +738,7 @@ class TestVerdiComputerCommands(AiidaTestCase):
         result = self.runner.invoke(computer_duplicate, [str(self.comp.pk)], input=user_input, catch_exceptions=False)
         self.assertIsNone(result.exception, result.output)
 
-        new_computer = self.backend.computers.get(name=label)
+        new_computer = orm.Computer.objects(self.backend).get(name=label)
         self.assertEquals(self.comp.description, new_computer.description)
         self.assertEquals(self.comp.get_hostname(), new_computer.get_hostname())
         self.assertEquals(self.comp.get_transport_type(), new_computer.get_transport_type())
@@ -750,7 +755,7 @@ class TestVerdiComputerCommands(AiidaTestCase):
         result = self.runner.invoke(computer_duplicate, ['--non-interactive', '--label=' + label, str(self.comp.pk)])
         self.assertIsNone(result.exception)
 
-        new_computer = self.backend.computers.get(name=label)
+        new_computer = orm.Computer.objects(self.backend).get(name=label)
         self.assertEquals(self.comp.description, new_computer.description)
         self.assertEquals(self.comp.get_hostname(), new_computer.get_hostname())
         self.assertEquals(self.comp.get_transport_type(), new_computer.get_transport_type())

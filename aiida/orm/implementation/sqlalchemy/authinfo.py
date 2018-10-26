@@ -13,14 +13,14 @@ from __future__ import absolute_import
 from aiida.backends.sqlalchemy.models.authinfo import DbAuthInfo
 from aiida.common import exceptions
 from aiida.common.utils import type_check
-from aiida.orm.authinfo import AuthInfoCollection, AuthInfo
-
+from aiida.orm.implementation.authinfos import BackendAuthInfo, BackendAuthInfoCollection
+from aiida.orm.backends import construct_backend
 from . import computer as computers
 from . import user as users
 from . import utils
 
 
-class SqlaAuthInfoCollection(AuthInfoCollection):
+class SqlaAuthInfoCollection(BackendAuthInfoCollection):
 
     def create(self, computer, user):
         return SqlaAuthInfo(self.backend, computer, user)
@@ -73,11 +73,13 @@ class SqlaAuthInfoCollection(AuthInfoCollection):
         return SqlaAuthInfo.from_dbmodel(dbmodel, self.backend)
 
 
-class SqlaAuthInfo(AuthInfo):
+class SqlaAuthInfo(BackendAuthInfo):
     """AuthInfo implementation for SQLAlchemy."""
 
     @classmethod
-    def from_dbmodel(cls, dbmodel, backend):
+    def from_dbmodel(cls, dbmodel, backend=None):
+        if backend is None:
+            backend = construct_backend()
         type_check(dbmodel, DbAuthInfo)
         authinfo = SqlaAuthInfo.__new__(cls)
         super(SqlaAuthInfo, authinfo).__init__(backend)
@@ -94,9 +96,8 @@ class SqlaAuthInfo(AuthInfo):
         """
         super(SqlaAuthInfo, self).__init__(backend)
         type_check(user, users.SqlaUser)
-        backend_computer = computer.backend_entity
-        type_check(backend_computer, computers.SqlaComputer)
-        self._dbauthinfo = utils.ModelWrapper(DbAuthInfo(dbcomputer=backend_computer.dbcomputer, aiidauser=user.dbuser))
+        type_check(computer, computers.SqlaComputer)
+        self._dbauthinfo = utils.ModelWrapper(DbAuthInfo(dbcomputer=computer.dbcomputer, aiidauser=user.dbuser))
 
     @property
     def dbauthinfo(self):
@@ -120,8 +121,8 @@ class SqlaAuthInfo(AuthInfo):
         return self._dbauthinfo.enabled
 
     @enabled.setter
-    def enabled(self, value):
-        self._dbauthinfo.enabled = value
+    def enabled(self, enabled):
+        self._dbauthinfo.enabled = enabled
 
     @property
     def computer(self):

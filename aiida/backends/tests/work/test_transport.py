@@ -16,6 +16,7 @@ from tornado.gen import coroutine, Return
 
 from aiida.backends.testbase import AiidaTestCase
 from aiida.work.transports import TransportQueue
+from aiida.orm import AuthInfo, User
 
 
 class TestTransportQueue(AiidaTestCase):
@@ -24,9 +25,7 @@ class TestTransportQueue(AiidaTestCase):
     def setUp(self, *args, **kwargs):
         """ Set up a simple authinfo and for later use """
         super(TestTransportQueue, self).setUp(*args, **kwargs)
-        self.authinfo = self.backend.authinfos.create(
-            computer=self.computer,
-            user=self.backend.users.get_default())
+        self.authinfo = AuthInfo(computer=self.computer, user=User.objects.get_default())
         self.authinfo.store()
 
     def tearDown(self, *args, **kwargs):
