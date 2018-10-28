@@ -70,11 +70,6 @@ class DjangoQueryBuilder(BackendQueryBuilder):
         import aiida.orm.implementation.django.node
         return aiida.orm.implementation.django.node.Node
 
-    @property
-    def AiidaGroup(self):
-        import aiida.orm.implementation.django.group
-        return aiida.orm.implementation.django.group.Group
-
     @staticmethod
     def get_filter_expr_from_column(operator, value, column):
         """Get the filter expression for a particular column"""
@@ -241,8 +236,7 @@ class DjangoQueryBuilder(BackendQueryBuilder):
 
     def modify_expansions(self, alias, expansions):
         """
-        For the Django schema, we have as additioanl expansions 'attributes'
-        and 'extras'
+        For the Django schema, we have as additional expansions 'attributes' and 'extras'
         """
 
         if issubclass(alias._sa_class_manager.class_, self.Node):  # pylint: disable=protected-access

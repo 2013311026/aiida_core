@@ -90,11 +90,11 @@ class TestVerdiGroupSetup(AiidaTestCase):
         Test group create command
         """
         result = self.runner.invoke(group_create, ["dummygroup5"])
-        self.assertIsNone(result.exception)
+        self.assertIsNone(result.exception, "".join(traceback.format_exception(*result.exc_info)))
 
         ## check if newly added group in present in list
         result = self.runner.invoke(group_list)
-        self.assertIsNone(result.exception)
+        self.assertIsNone(result.exception, "".join(traceback.format_exception(*result.exc_info)))
         self.assertIn("dummygroup5", result.output)
 
     def test_list(self):
@@ -102,7 +102,7 @@ class TestVerdiGroupSetup(AiidaTestCase):
         Test group list command
         """
         result = self.runner.invoke(group_list)
-        self.assertIsNone(result.exception)
+        self.assertIsNone(result.exception, "".join(traceback.format_exception(*result.exc_info)))
         for grp in ["dummygroup1", "dummygroup2"]:
             self.assertIn(grp, result.output)
 
@@ -111,7 +111,7 @@ class TestVerdiGroupSetup(AiidaTestCase):
         Test group delete command
         """
         result = self.runner.invoke(group_delete, ["--force", "dummygroup3"])
-        self.assertIsNone(result.exception)
+        self.assertIsNone(result.exception, "".join(traceback.format_exception(*result.exc_info)))
 
         ## check if removed group is not present in list
         result = self.runner.invoke(group_list)
@@ -123,7 +123,7 @@ class TestVerdiGroupSetup(AiidaTestCase):
         Test group show command
         """
         result = self.runner.invoke(group_show, ["dummygroup1"])
-        self.assertIsNone(result.exception)
+        self.assertIsNone(result.exception, "".join(traceback.format_exception(*result.exc_info)))
         for grpline in [
                 "Group name", "dummygroup1", "Group type", "<user-defined>", "Group description", "<no description>"
         ]:

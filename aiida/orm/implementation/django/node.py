@@ -26,7 +26,6 @@ from aiida.common.folders import RepositoryFolder
 from aiida.common.links import LinkType
 from aiida.common.utils import get_new_uuid, type_check
 from aiida.orm.implementation.general.node import AbstractNode, _HASH_EXTRA_KEY
-from . import backend
 from . import computer as computers
 
 
@@ -551,7 +550,7 @@ class Node(AbstractNode):
         )
 
     def set_user(self, user):
-        assert isinstance(user.backend, backend.DjangoBackend)
+        assert user.backend == self.backend, "Passed user from different backend"
         self._dbnode.user = user.backend_entity.dbuser
 
     def _store_cached_input_links(self, with_transaction=True):

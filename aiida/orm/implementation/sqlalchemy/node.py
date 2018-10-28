@@ -451,7 +451,6 @@ class Node(AbstractNode):
         if user is None:
             user = orm.User.objects(self.backend).get_default()
 
-
         comment = DbComment(dbnode=self._dbnode, user=user.backend_entity.dbuser, content=content)
         session.add(comment)
         try:

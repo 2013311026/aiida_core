@@ -14,9 +14,9 @@ from __future__ import absolute_import
 
 from aiida.transport import TransportFactory
 from aiida.common.exceptions import (ConfigurationError, MissingPluginError)
-from .backends import construct_backend
-from . import computers
+from . import backends
 from . import entities
+from . import computers
 from . import users
 
 __all__ = ('AuthInfo',)
@@ -29,7 +29,7 @@ class AuthInfo(entities.Entity):
     how often to check on a given computer etc.)
     """
 
-    class Collection(entities.Entity.Collection):
+    class Collection(entities.Collection):
         """The collection of AuthInfo entries."""
 
         def find(self, computer, user):
@@ -61,7 +61,7 @@ class AuthInfo(entities.Entity):
         :param user: a User instance
         :return: an AuthInfo object associated with the given computer and user
         """
-        backend = backend or construct_backend()
+        backend = backend or backends.construct_backend()
         model = backend.authinfos.create(computer=computer.backend_entity, user=user.backend_entity)
         super(AuthInfo, self).__init__(model)
 

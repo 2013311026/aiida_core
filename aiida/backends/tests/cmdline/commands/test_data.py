@@ -21,7 +21,7 @@ import subprocess as sp
 from click.testing import CliRunner
 
 from aiida.cmdline.utils import echo
-from aiida.orm.group import Group
+from aiida.orm.groups import Group
 from aiida.orm.data.array import ArrayData
 from aiida.orm.data.array.bands import BandsData
 from aiida.orm.data.array.kpoints import KpointsData
@@ -551,7 +551,7 @@ class TestVerdiDataTrajectory(AiidaTestCase, TestVerdiDataListable,
     @staticmethod
     def create_trajectory_data():
         from aiida.orm.data.array.trajectory import TrajectoryData
-        from aiida.orm.group import Group
+        from aiida.orm.groups import Group
         import numpy
 
         # Create a node with two arrays
@@ -662,7 +662,7 @@ class TestVerdiDataStructure(AiidaTestCase, TestVerdiDataListable, TestVerdiData
     @staticmethod
     def create_structure_data():
         from aiida.orm.data.structure import StructureData, Site, Kind
-        from aiida.orm.group import Group
+        from aiida.orm.groups import Group
 
         alat = 4.  # angstrom
         cell = [[alat, 0., 0., ],

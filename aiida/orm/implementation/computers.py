@@ -151,13 +151,6 @@ class BackendComputerCollection(backends.BackendCollection):
     ENTRY_TYPE = BackendComputer
 
     @abc.abstractmethod
-    def list_names(self):
-        """
-        Return a list with all the names of the computers in the DB.
-        """
-        pass
-
-    @abc.abstractmethod
     def delete(self, id):  # pylint: disable=redefined-builtin, invalid-name
         """
         Delete an entry with the given id

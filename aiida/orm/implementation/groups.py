@@ -11,12 +11,15 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
-from abc import ABCMeta, abstractmethod, abstractproperty
-
+import abc
 import six
 
-from aiida.common.exceptions import UniquenessError, NotExistent, MultipleObjectsError
-from aiida.common.utils import abstractclassmethod, abstractstaticmethod
+from aiida.common.exceptions import MultipleObjectsError
+from aiida.common.utils import abstractclassmethod
+
+from . import backends
+
+__all__ = 'BackendGroup', 'BackendGroupCollection'
 
 
 def get_group_type_mapping():
@@ -33,42 +36,23 @@ def get_group_type_mapping():
     from aiida.orm.autogroup import VERDIAUTOGROUP_TYPE
     from aiida.orm.importexport import IMPORTGROUP_TYPE
 
-    return {'data.upf': UPFGROUP_TYPE,
-            'import': IMPORTGROUP_TYPE,
-            'autogroup.run': VERDIAUTOGROUP_TYPE}
+    return {'data.upf': UPFGROUP_TYPE, 'import': IMPORTGROUP_TYPE, 'autogroup.run': VERDIAUTOGROUP_TYPE}
 
 
-@six.add_metaclass(ABCMeta)
-class AbstractGroup(object):
+@six.add_metaclass(abc.ABCMeta)
+class BackendGroup(backends.BackendEntity):
     """
     An AiiDA ORM implementation of group of nodes.
     """
 
-    @abstractmethod
-    def __init__(self, **kwargs):
-        """
-        Create a new group. Either pass a dbgroup parameter, to reload
-        ad group from the DB (and then, no further parameters are allowed),
-        or pass the parameters for the Group creation.
-
-        :param dbgroup: the dbgroup object, if you want to reload the group
-            from the DB rather than creating a new one.
-        :param name: The group name, required on creation
-        :param description: The group description (by default, an empty string)
-        :param user: The owner of the group (by default, the automatic user)
-        :param type_string: a string identifying the type of group (by default,
-            an empty string, indicating an user-defined group.
-        """
-        pass
-
-    @abstractproperty
+    @abc.abstractproperty
     def name(self):
         """
         :return: the name of the group as a string
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     @name.setter
     def name(self, name):
         """
@@ -81,7 +65,7 @@ class AbstractGroup(object):
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def description(self):
         """
         :return: the description of the group as a string
@@ -89,106 +73,47 @@ class AbstractGroup(object):
         pass
 
     @description.setter
-    @abstractmethod
+    @abc.abstractmethod
     def description(self, value):
         """
         :return: the description of the group as a string
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def type_string(self):
         """
         :return: the string defining the type of the group
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def user(self):
         """
         :return: a Django DbUser object, representing the user associated to this group.
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def dbgroup(self):
         """
         :return: the corresponding Django DbGroup object.
         """
         pass
 
-    @abstractproperty
-    def pk(self):
-        """
-        :return: the principal key (the ID) as an integer, or None if the node was not stored yet
-        """
-        pass
-
-    @abstractproperty
+    @abc.abstractproperty
     def id(self):
         """
         :return: the principal key (the ID) as an integer, or None if the node was not stored yet
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def uuid(self):
         """
         :return: a string with the uuid
         """
         pass
-
-    @staticmethod
-    def get_schema():
-        """
-        Every node property contains:
-            - display_name: display name of the property
-            - help text: short help text of the property
-            - is_foreign_key: is the property foreign key to other type of the node
-            - type: type of the property. e.g. str, dict, int
-
-        :return: get schema of the group
-        """
-        return {
-            "description": {
-                "display_name": "Description",
-                "help_text": "short description of the Computer",
-                "is_foreign_key": False,
-                "type": "str"
-            },
-            "id": {
-                "display_name": "Id",
-                "help_text": "Id of the object",
-                "is_foreign_key": False,
-                "type": "int"
-            },
-            "name": {
-                "display_name": "Name",
-                "help_text": "Name of the object",
-                "is_foreign_key": False,
-                "type": "str"
-            },
-            "type": {
-                "display_name": "Type",
-                "help_text": "Code type",
-                "is_foreign_key": False,
-                "type": "str"
-            },
-            "user_id": {
-                "display_name": "Id of creator",
-                "help_text": "Id of the user that created the node",
-                "is_foreign_key": True,
-                "related_column": "id",
-                "related_resource": "_dbusers",
-                "type": "int"
-            },
-            "uuid": {
-                "display_name": "Unique ID",
-                "help_text": "Universally Unique Identifier",
-                "is_foreign_key": False,
-                "type": "unicode"
-            }
-        }
 
     @classmethod
     def create(cls, *args, **kwargs):
@@ -211,18 +136,16 @@ class AbstractGroup(object):
         :return: (group, created) where group is the group (new or existing,
           in any case already stored) and created is a boolean saying
         """
-        res = cls.query(name=kwargs.get("name"),
-                        type_string=kwargs.get("type_string"))
+        res = cls.query(name=kwargs.get("name"), type_string=kwargs.get("type_string"))
 
         if res is None or len(res) == 0:
             return cls.create(*args, **kwargs), True
         elif len(res) > 1:
-            raise MultipleObjectsError("More than one groups found in the "
-                                       "database")
+            raise MultipleObjectsError("More than one groups found in the " "database")
         else:
             return res[0], False
 
-    @abstractmethod
+    @abc.abstractmethod
     def __int__(self):
         """
         Convert the class to an integer. This is needed to allow querying
@@ -233,18 +156,18 @@ class AbstractGroup(object):
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def is_stored(self):
         """
         :return: True if the respective DbNode has been already saved in the DB, False otherwise
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def store(self):
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def add_nodes(self, nodes):
         """
         Add a node or a set of nodes to the group.
@@ -258,7 +181,7 @@ class AbstractGroup(object):
         """
         pass
 
-    @abstractproperty
+    @abc.abstractproperty
     def nodes(self):
         """
         Return a generator/iterator that iterates over all nodes and returns
@@ -267,7 +190,7 @@ class AbstractGroup(object):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def remove_nodes(self, nodes):
         """
         Remove a node or a set of nodes to the group.
@@ -281,9 +204,31 @@ class AbstractGroup(object):
         """
         pass
 
-    @abstractclassmethod
-    def query(cls, name=None, type_string="", pk=None, uuid=None, nodes=None,
-              user=None, node_attributes=None, past_days=None, **kwargs):
+    def __repr__(self):
+        return '<{}: {}>'.format(self.__class__.__name__, str(self))
+
+    def __str__(self):
+        if self.type_string:
+            return '"{}" [type {}], of user {}'.format(self.name, self.type_string, self.user.email)
+        else:
+            return '"{}" [user-defined], of user {}'.format(self.name, self.user.email)
+
+
+@six.add_metaclass(abc.ABCMeta)
+class BackendGroupCollection(backends.BackendCollection):
+    """The collection of Computer entries."""
+
+    @abc.abstractmethod
+    def query(self,
+              name=None,
+              type_string="",
+              pk=None,
+              uuid=None,
+              nodes=None,
+              user=None,
+              node_attributes=None,
+              past_days=None,
+              **kwargs):
         """
         Query for groups.
 
@@ -319,83 +264,11 @@ class AbstractGroup(object):
                 contain at least one node for element 'Ba' and one node for element 'Ti'.
 
         """
-        pass
 
-    @classmethod
-    def get(cls, *args, **kwargs):
-        queryresults = cls.query(*args, **kwargs)
-
-        if len(queryresults) == 1:
-            return queryresults[0]
-        elif len(queryresults) == 0:
-            raise NotExistent("No Group matching the query found")
-        else:
-            raise MultipleObjectsError("More than one Group found -- "
-                                       "I found {}".format(len(queryresults)))
-
-    @classmethod
-    def get_from_string(cls, string):
+    @abc.abstractmethod
+    def delete(self, id):  # pylint: disable=redefined-builtin, invalid-name
         """
-        Get a group from a string.
-        If only the name is provided, without colons,
-        only user-defined groups are searched;
-        add ':type_str' after the group name to choose also
-        the type of the group equal to 'type_str'
-        (e.g. 'data.upf', 'import', etc.)
+        Delete a group with the given id
 
-        :raise ValueError: if the group type does not exist.
-        :raise NotExistent: if the group is not found.
+        :param id: the id of the group to delete
         """
-        name, sep, typestr = string.rpartition(':')
-        if not sep:
-            name = typestr
-            typestr = ""
-        if typestr:
-            try:
-                internal_type_string = get_group_type_mapping()[typestr]
-            except KeyError:
-                msg = ("Invalid group type '{}'. Valid group types are: "
-                       "{}".format(typestr, ",".join(sorted(
-                    get_group_type_mapping().keys()))))
-                raise ValueError(msg)
-        else:
-            internal_type_string = ""
-
-        try:
-            group = cls.get(name=name,
-                            type_string=internal_type_string)
-            return group
-        except NotExistent:
-            if typestr:
-                msg = (
-                    "No group of type '{}' with name '{}' "
-                    "found.".format(typestr, name))
-            else:
-                msg = (
-                    "No user-defined group with name '{}' "
-                    "found.".format(name))
-            raise NotExistent(msg)
-
-    def is_user_defined(self):
-        """
-        :return: True if the group is user defined, False otherwise
-        """
-        return not self.type_string
-
-    @abstractmethod
-    def delete(self):
-        """
-        Delete the group from the DB
-        """
-        pass
-
-    def __repr__(self):
-        return '<{}: {}>'.format(self.__class__.__name__, str(self))
-
-    def __str__(self):
-        if self.type_string:
-            return '"{}" [type {}], of user {}'.format(
-                self.name, self.type_string, self.user.email)
-        else:
-            return '"{}" [user-defined], of user {}'.format(
-                self.name, self.user.email)

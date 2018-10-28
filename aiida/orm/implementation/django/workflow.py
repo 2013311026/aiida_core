@@ -25,7 +25,6 @@ from aiida.common.exceptions import (InternalError, ModificationNotAllowed,
                                      AiidaException)
 from aiida.common.folders import RepositoryFolder, SandboxFolder
 from aiida.common.utils import md5_file, str_timedelta
-from aiida.orm.implementation.django.calculation.job import JobCalculation
 from aiida.orm.implementation.general.workflow import AbstractWorkflow
 from aiida.utils import timezone
 
@@ -618,7 +617,7 @@ def get_workflow_info(w, tab_size=2, short=False, pre_string="",
     """
     # Note: pre_string becomes larger at each call of get_workflow_info on the
     #       subworkflows: pre_string -> pre_string + "|" + " "*(tab_size-1))
-
+    from .calculation.job import JobCalculation
     from aiida.backends.djsite.db.models import DbWorkflow
     if tab_size < 2:
         raise ValueError("tab_size must be > 2")

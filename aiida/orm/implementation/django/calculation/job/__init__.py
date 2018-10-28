@@ -11,17 +11,11 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
-import datetime
 from django.db import transaction, IntegrityError
-from django.db.models import Q
-from aiida.common.utils import str_timedelta
 from aiida.common.datastructures import sort_states, calc_states
 from aiida.common.exceptions import ModificationNotAllowed, DbContentError
-from aiida.orm.group import Group
 from aiida.orm.implementation.django.calculation import Calculation
 from aiida.orm.implementation.general.calculation.job import AbstractJobCalculation
-from aiida.plugins.loader import get_plugin_type_from_type_string
-from aiida.utils import timezone
 
 
 class JobCalculation(AbstractJobCalculation, Calculation):

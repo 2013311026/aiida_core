@@ -15,9 +15,7 @@ from __future__ import absolute_import
 from aiida.common import exceptions
 from aiida.common.utils import classproperty, type_check
 
-from . import backends
-
-__all__ = ('Entity', 'Collection')
+__all__ = 'Entity', 'Collection'
 
 
 class Collection(object):
@@ -25,6 +23,9 @@ class Collection(object):
 
     def __init__(self, backend, entity_class):
         # assert issubclass(entity_class, Entity), "Must provide an entity type"
+        if backend is None:
+            from . import backends
+            backend = backend or backends.construct_backend()
         self._backend = backend
         self._entity_type = entity_class
 
@@ -127,6 +128,8 @@ class Entity(object):
         :param backend: the optional backend to use (otherwise use default)
         :return: an object that can be used to access entites of this type
         """
+        from . import backends
+
         backend = backend or backends.construct_backend()
         return cls.Collection(backend, cls)
 
@@ -146,9 +149,9 @@ class Entity(object):
         from . import implementation
 
         type_check(backend_entity, implementation.BackendEntity)
-        computer = cls.__new__(cls)
-        computer.init_from_backend(backend_entity)
-        return computer
+        entity = cls.__new__(cls)
+        entity.init_from_backend(backend_entity)
+        return entity
 
     def __init__(self, backend_entity):
         """

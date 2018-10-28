@@ -85,13 +85,6 @@ class BackendQueryBuilder(object):
         pass
 
     @abc.abstractmethod
-    def AiidaGroup(self):
-        """
-        A property, decorated with @property. Returns the implementation for the AiiDA-class for Group
-        """
-        pass
-
-    @abc.abstractmethod
     def get_session(self):
         """
         :returns: a valid session, an instance of sqlalchemy.orm.session.Session

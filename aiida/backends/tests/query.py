@@ -449,7 +449,7 @@ class TestQueryHelp(AiidaTestCase):
         from aiida.orm.data.parameter import ParameterData
         from aiida.orm.data import Data
         from aiida.orm.querybuilder import QueryBuilder
-        from aiida.orm.group import Group
+        from aiida.orm.groups import Group
         from aiida.orm.computers import Computer
         g = Group(name='helloworld').store()
         for cls in (StructureData, ParameterData, Data):
@@ -731,7 +731,7 @@ class QueryBuilderJoinsTests(AiidaTestCase):
         user = User(email=new_email, backend=self.backend).store()
 
         # Create a group that belongs to that user
-        from aiida.orm.group import Group
+        from aiida.orm.groups import Group
         group = Group(name="node_group")
         group.user = user
         group.store()

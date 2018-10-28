@@ -71,6 +71,10 @@ class DjangoComputer(BackendComputer):
         computer._dbcomputer = utils.ModelWrapper(dbmodel)
         return computer
 
+    def __init__(self, backend, attributes):
+        super(DjangoComputer, self).__init__(backend)
+        self._dbcomputer = utils.ModelWrapper(DbComputer(**attributes))
+
     @property
     def uuid(self):
         return six.text_type(self._dbcomputer.uuid)
@@ -82,10 +86,6 @@ class DjangoComputer(BackendComputer):
     @property
     def id(self):
         return self._dbcomputer.pk
-
-    def __init__(self, backend, attributes):
-        super(DjangoComputer, self).__init__(backend)
-        self._dbcomputer = utils.ModelWrapper(DbComputer(**attributes))
 
     def set(self, **kwargs):
         for k, v in kwargs.items():

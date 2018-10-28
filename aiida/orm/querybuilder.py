@@ -50,6 +50,7 @@ from aiida.orm.utils import convert
 
 from . import authinfos
 from . import computers
+from . import groups
 from . import users
 
 __all__ = 'QueryBuilder',
@@ -77,7 +78,7 @@ def get_querybuilder_classifiers_from_cls(cls, obj):
         ormclasstype = 'group'
         query_type_string = None
         ormclass = cls
-    elif issubclass(cls, obj.AiidaGroup):
+    elif issubclass(cls, groups.Group):
         ormclasstype = 'group'
         query_type_string = None
         ormclass = obj.Group
@@ -590,8 +591,6 @@ class QueryBuilder(object):
 
         ######################## ALIASING ##############################
         try:
-            # ~ alias =
-            # ~ self._aliased_path.append(alias)
             self._tag_to_alias_map[tag] = aliased(ormclass)
         except Exception as e:
             if self._debug:
@@ -1544,7 +1543,8 @@ class QueryBuilder(object):
             The input value that will be converted.
             Recurses into each value if **inp** is an iterable.
         """
-        print(inp)
+        from aiida import orm
+
         if isinstance(inp, dict):
             for key, val in inp.items():
                 inp[self._get_json_compatible(key)] = self._get_json_compatible(inp.pop(key))
@@ -1553,7 +1553,7 @@ class QueryBuilder(object):
         elif inspect_isclass(inp):
             if issubclass(inp, self.AiidaNode):
                 return '.'.join(inp._plugin_type_string.strip('.').split('.')[:-1])
-            elif issubclass(inp, self.AiidaGroup):
+            elif issubclass(inp, orm.Group):
                 return 'group'
             else:
                 raise InputValidationError

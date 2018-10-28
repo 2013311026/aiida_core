@@ -16,23 +16,14 @@ import datetime
 from dateutil.parser import parse
 
 from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.orm import joinedload
 
 from aiida.common.datastructures import sort_states, calc_states
-from aiida.common.exceptions import ModificationNotAllowed, DbContentError
-from aiida.common.utils import str_timedelta
+from aiida.common.exceptions import ModificationNotAllowed
 
-from aiida.backends import sqlalchemy as sa
-from aiida.backends.sqlalchemy.models.node import DbNode, DbCalcState
-from aiida.backends.sqlalchemy.models.group import DbGroup
+from aiida.backends.sqlalchemy.models.node import DbCalcState
 
-from aiida.orm.implementation.sqlalchemy.utils import django_filter
 from aiida.orm.implementation.sqlalchemy.calculation import Calculation
 from aiida.orm.implementation.general.calculation.job import AbstractJobCalculation
-    
-from aiida.orm.group import Group
-
-from aiida.utils import timezone
 
 
 class JobCalculation(AbstractJobCalculation, Calculation):
@@ -111,4 +102,3 @@ class JobCalculation(AbstractJobCalculation, Calculation):
                 else:
                     state_to_return = None
         return state_to_return
-

@@ -19,7 +19,7 @@ from aiida.common import exceptions
 from aiida.common.utils import (export_shard_uuid, get_class_string,
                                 get_object_from_string, grouper)
 from aiida.orm.computers import Computer
-from aiida.orm.group import Group
+from aiida.orm.groups import Group
 from aiida.orm.node import Node
 from aiida.orm.users import User
 
@@ -1744,7 +1744,7 @@ def export_tree(what, folder,allowed_licenses=None, forbidden_licenses=None,
         # Now a load the backend-independent name into entry_entity_name, e.g. Node!
         entry_entity_name = schema_to_entity_names(entry_class_string)
         if issubclass(entry.__class__, Group):
-            given_group_entry_ids.add(entry.pk)
+            given_group_entry_ids.add(entry.id)
             given_groups.add(entry)
         elif issubclass(entry.__class__, Node):
             # The Code node should be treated as a Data node

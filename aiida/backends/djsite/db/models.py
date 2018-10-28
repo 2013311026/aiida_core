@@ -1317,6 +1317,11 @@ class DbGroup(m.Model):
         else:
             return '<DbGroup [user-defined] "{}">'.format(self.name)
 
+    def get_aiida_class(self):
+        from aiida.orm.implementation.django.groups import DjangoGroup
+        from aiida.orm.backends import construct_backend
+        return DjangoGroup.from_dbmodel(self, construct_backend())
+
 
 @python_2_unicode_compatible
 class DbComputer(m.Model):

@@ -25,36 +25,6 @@ from aiida.orm.implementation.computers import BackendComputerCollection, Backen
 from . import utils
 
 
-class SqlaComputerCollection(BackendComputerCollection):
-    def create(self, **attributes):
-        return SqlaComputer(self.backend, attributes)
-
-    def list_names(cls):
-        from aiida.backends.sqlalchemy import get_scoped_session
-        session = get_scoped_session()
-        return session.query(DbComputer.name).all()
-
-    def delete(self, id):
-        import aiida.backends.sqlalchemy
-        try:
-            session = aiida.backends.sqlalchemy.get_scoped_session()
-            session.query(DbComputer).get(id).delete()
-            session.commit()
-        except SQLAlchemyError as exc:
-            raise InvalidOperation("Unable to delete the requested computer: it is possible that there "
-                                   "is at least one node using this computer (original message: {})".format(exc))
-
-    def from_dbmodel(self, computer):
-        """
-        Construct a SqlaComputer instance from the corresponding database entry
-
-        :param computer: The DbComputer instance
-        :return: The Computer instance
-        :rtype: :class:`aiida.orm.implementation.sqlalchemy.computer.SqlaComputer`
-        """
-        return SqlaComputer.from_dbmodel(computer, self.backend)
-
-
 class SqlaComputer(BackendComputer):
     @classmethod
     def from_dbmodel(cls, dbmodel, backend):
@@ -195,3 +165,25 @@ class SqlaComputer(BackendComputer):
 
     def set_transport_type(self, val):
         self._dbcomputer.transport_type = val
+
+
+class SqlaComputerCollection(BackendComputerCollection):
+    ENTRY_TYPE = SqlaComputer
+
+    def create(self, **attributes):
+        return SqlaComputer(self.backend, attributes)
+
+    def list_names(cls):
+        from aiida.backends.sqlalchemy import get_scoped_session
+        session = get_scoped_session()
+        return session.query(DbComputer.name).all()
+
+    def delete(self, id):
+        import aiida.backends.sqlalchemy
+        try:
+            session = aiida.backends.sqlalchemy.get_scoped_session()
+            session.query(DbComputer).get(id).delete()
+            session.commit()
+        except SQLAlchemyError as exc:
+            raise InvalidOperation("Unable to delete the requested computer: it is possible that there "
+                                   "is at least one node using this computer (original message: {})".format(exc))

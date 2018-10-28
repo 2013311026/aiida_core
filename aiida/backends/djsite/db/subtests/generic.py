@@ -60,13 +60,13 @@ class TestGroupsDjango(AiidaTestCase):
         """
         Test if queries are working
         """
-        from aiida.orm.group import Group
+        from aiida.orm.groups import Group
         from aiida.common.exceptions import NotExistent, MultipleObjectsError
 
         g1 = Group(name='testquery1').store()
-        self.addCleanup(g1.delete)
+        self.addCleanup(lambda: Group.objects(self.backend).delete(g1.id))
         g2 = Group(name='testquery2').store()
-        self.addCleanup(g2.delete)
+        self.addCleanup(lambda: orm.Group.objects(self.backend).delete(g2.id))
 
         n1 = Node().store()
         n2 = Node().store()
@@ -78,6 +78,7 @@ class TestGroupsDjango(AiidaTestCase):
 
         newuser = orm.User(email='test@email.xx')
         g3 = Group(name='testquery3', user=newuser).store()
+        self.addCleanup(lambda: orm.Group.objects(self.backend).delete(g3.id))
 
         # I should find it
         g1copy = Group.get(uuid=g1.uuid)
@@ -118,7 +119,7 @@ class TestGroupsDjango(AiidaTestCase):
         """
         Test that renaming to an already existing name is not permitted
         """
-        from aiida.orm.group import Group
+        from aiida.orm.groups import Group
 
         name_group_a = 'group_a'
         name_group_b = 'group_b'

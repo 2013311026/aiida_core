@@ -59,6 +59,15 @@ class Backend(object):
         """
 
     @abc.abstractproperty
+    def groups(self):
+        """
+        Return the collection of groups
+
+        :return: the groups collection
+        :rtype: :class:`aiida.orm.implementation.BackendGroupCollection`
+        """
+
+    @abc.abstractproperty
     def query_manager(self):
         """
         Return the query manager for the objects stored in the backend
@@ -145,14 +154,13 @@ class BackendCollection(object):
         """
         return self._backend
 
-    @abc.abstractmethod
     def create(self, **kwargs):
         """
         Create new a entry and set the attributes to those specified in the keyword arguments
 
         :return: the newly created entry
         """
-        pass
+        return self.ENTRY_TYPE(backend=self._backend, **kwargs)
 
     def query(self):
         """
@@ -163,3 +171,12 @@ class BackendCollection(object):
         query = self.backend.query()
         query.append(self.ENTRY_TYPE)
         return query
+
+    def from_dbmodel(self, dbmodel):
+        """
+        Create an entity from the backend dbmodel
+
+        :param dbmodel: the dbmodel to create the entity from
+        :return: the entity instance
+        """
+        return self.ENTRY_TYPE.from_dbmodel(dbmodel, self.backend)

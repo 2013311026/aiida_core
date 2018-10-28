@@ -16,6 +16,7 @@ from aiida.backends.djsite.queries import DjangoQueryManager
 from aiida.orm.implementation.django.querybuilder import DjangoQueryBuilder
 from . import authinfo
 from . import computer
+from . import groups
 from . import log
 from . import user
 
@@ -27,6 +28,7 @@ class DjangoBackend(Backend):
         self._users = user.DjangoUserCollection(self)
         self._authinfos = authinfo.DjangoAuthInfoCollection(self)
         self._computers = computer.DjangoComputerCollection(self)
+        self._groups = groups.DjangoGroupCollection(self)
         self._query_manager = DjangoQueryManager(self)
 
     @property
@@ -44,6 +46,10 @@ class DjangoBackend(Backend):
     @property
     def computers(self):
         return self._computers
+
+    @property
+    def groups(self):
+        return self._groups
 
     @property
     def query_manager(self):

@@ -17,6 +17,7 @@ from . import authinfo
 from . import computer
 from . import log
 from . import querybuilder
+from . import groups
 from . import user
 
 
@@ -26,6 +27,7 @@ class SqlaBackend(Backend):
         self._logs = log.SqlaLogCollection(self, log.SqlaLog)
         self._users = user.SqlaUserCollection(self)
         self._authinfos = authinfo.SqlaAuthInfoCollection(self)
+        self._groups = groups.SqlaGroupCollection(self)
         self._computers = computer.SqlaComputerCollection(self)
         self._query_manager = SqlaQueryManager(self)
 
@@ -44,6 +46,10 @@ class SqlaBackend(Backend):
     @property
     def computers(self):
         return self._computers
+
+    @property
+    def groups(self):
+        return self._groups
 
     @property
     def query_manager(self):

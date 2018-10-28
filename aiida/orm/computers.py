@@ -16,8 +16,6 @@ import logging
 import os
 import six
 
-# pylint: disable=cyclic-import
-
 from aiida import transport, scheduler
 from aiida.common import exceptions
 from . import backends
