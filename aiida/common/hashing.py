@@ -347,7 +347,7 @@ def _(arr, **kwargs):
     return [_single_digest('arr.*', little_endian_array(arr).tobytes())]
 
 
-def truncate_float64(value, num_bits=4):
+def truncate_float64(value, num_bits=12):
     """
     reduce the number of bits making it into the hash to avoid rehashing due to
     possible truncation in float->str->float roundtrips
@@ -359,7 +359,7 @@ def truncate_float64(value, num_bits=4):
     return truncated_value
 
 
-def truncate_array64(value, num_bits=4):
+def truncate_array64(value, num_bits=12):
     mask = ~(2**num_bits - 1)
     int_array = np.array(value, dtype=np.float64).view(np.int64)
     masked_array = int_array & mask

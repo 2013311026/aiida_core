@@ -46,6 +46,7 @@ db_test_list = {
         'dataclasses': ['aiida.backends.tests.dataclasses'],
         'dbimporters': ['aiida.backends.tests.dbimporters'],
         'export_and_import': ['aiida.backends.tests.export_and_import'],
+        'clean_value': ['aiida.backends.tests.clean_value'],
         'parsers': ['aiida.backends.tests.parsers'],
         'tcodexporter': ['aiida.backends.tests.tcodexporter'],
         'query': ['aiida.backends.tests.query'],

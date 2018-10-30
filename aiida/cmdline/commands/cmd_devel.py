@@ -224,7 +224,7 @@ def devel_tests(paths, verbose):  # pylint: disable=too-many-locals,too-many-sta
         echo.echo('>>> Tests for module {} <<<'.format(test_folder.ljust(50)))
         echo.echo('^' * 75)
         testsuite = unittest.defaultTestLoader.discover(test_folder, top_level_dir=os.path.dirname(aiida.__file__))
-        test_runner = unittest.TextTestRunner()
+        test_runner = unittest.TextTestRunner(failfast=False)
         test_results = test_runner.run(testsuite)
         test_failures.extend(test_results.failures)
         test_errors.extend(test_results.errors)

@@ -62,6 +62,28 @@ class TruncationTest(unittest.TestCase):
     def test_subnormal(self):
         self.assertTrue(np.isclose(truncate_float64(1.0e-308), 1.0e-308, atol=1.0e-309))
 
+    def test_truncation(self):
+        values = [
+            (-2.0812630812649798841e-200, -2.0812630812649836552e-200),
+            (1.0812630812649799727e+200, 1.0812630812649837119e+200),
+            (1.4487561083273199228e+49, 1.448756108327320442e+49),
+            (4.5545218368795498816e+99, 4.5545218368795547383e+99),
+            (0.11733435637469799562, 0.11733435637469835644),
+            (1.4163564777724601406e-51, 1.4163564777724634047e-51),
+            (2.5707022807274298658e-11, 2.570702280727425019e-11),
+            (0.18378424648028598987, 0.18378424648028623967),
+            (2033340148.4316399097, 2033340148.4316427708),
+            (1.8294258313614499405e+49, 1.8294258313614465655e+49),
+            (6.2822986763227104028e+99, 6.2822986763227074888e+99),
+            (1.1482901881268099467e+99, 1.1482901881268148034e+99),
+            (2.1784955172285698565e+199, 2.1784955172285736807e+199),
+        ]
+        for one, two in values:
+            with self.subTest(key='{:.24g}'.format(one)):
+                one_truncated = truncate_float64(one)
+                two_truncated = truncate_float64(two)
+                self.assertEqual(one_truncated, two_truncated)
+
 
 class MakeHashTest(unittest.TestCase):
     """
@@ -74,7 +96,7 @@ class MakeHashTest(unittest.TestCase):
         test_data = {
             'something in ASCII': '06e87857590c91280d25e02f05637cd2381002bd1425dff3e36ca860bbb26a29',
             42: '9498ab55b7c66c66b2d19f9dd8b668acf8e2facf44da0fb466f6986999bb8a56',
-            3.141: 'd00f2e88a088626f5db3eadb6d9d40c74b4b4d3f9f07c1ca2f76b247fe39530b',
+            3.141: 'aa7b6a6629f33fef81ad8625b88e75cf2a63e4a2e5316cbe6fa7be44309e499f',
             complex(1, 2): '31800fbabb47c8fbf60c848571ee25e7dcbdfc5dfb60c1e8421c1c363a80ea6a',
             True: '31ad5fa163a0c478d966c7f7568f3248f0c58d294372b2e8f7cb0560d8c8b12f',
             None: '1729486cc7e56a6383542b1ec73125ccb26093651a5da05e04657ac416a74b8f',
@@ -178,7 +200,7 @@ class MakeHashTest(unittest.TestCase):
 
     def test_numpy_types(self):
         self.assertEqual(
-            make_hash(np.float64(3.141)), 'd00f2e88a088626f5db3eadb6d9d40c74b4b4d3f9f07c1ca2f76b247fe39530b')  # pylint: disable=no-member
+            make_hash(np.float64(3.141)), 'aa7b6a6629f33fef81ad8625b88e75cf2a63e4a2e5316cbe6fa7be44309e499f')  # pylint: disable=no-member
         self.assertEqual(make_hash(np.int64(42)), '9498ab55b7c66c66b2d19f9dd8b668acf8e2facf44da0fb466f6986999bb8a56')  # pylint: disable=no-member
 
     def test_numpy_arrays(self):
@@ -186,7 +208,7 @@ class MakeHashTest(unittest.TestCase):
             make_hash(np.array([1, 2, 3])), '8735e6439da0bd6949e97c7da08774fef2407dccef5e87bf569303e683c838ae')
         self.assertEqual(
             make_hash(np.array([np.float64(3.141)])),
-            'e03f2b6485f7a6ba0a2767c69724a1f5a9f73b8c36f5413d660f85631b4b562d')  # pylint: disable=no-member
+            'ca9880b696254c1b25170a2fd8c9dc1211d38ac84e52f87f552ce7dea253ed8d')  # pylint: disable=no-member
         self.assertEqual(
             make_hash(np.array([np.complex128(1 + 2j)])),
             'c8dab6e4d3f3904c90f2bb7a7f5ea84e36b6f0b8ad311e681dcd1863a7fdbb77')  # pylint: disable=no-member
